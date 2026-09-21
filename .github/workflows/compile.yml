@@ -1,0 +1,37 @@
+name: Compile for WebGPU
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Emscripten
+        run: bash scripts/prep_emcc_deps.sh
+
+      - name: Install MLC-LLM
+        run: |
+          pip install --upgrade pip
+          pip install mlc-llm==0.19.0
+          pip install huggingface-hub
+
+      - name: Compile model
+        run: bash scripts/compile_model.sh
+
+      - name: Upload WASM
+        uses: actions/upload-artifact@v4
+        with:
+          name: qwen-webgpu-wasm
+          path: ./dist/libs/
+          retention-days: 30
